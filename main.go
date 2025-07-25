@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/ballinwza/combine-be-workshop/handlers"
 	"github.com/ballinwza/combine-be-workshop/services"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -16,10 +17,12 @@ func main() {
 		AllowHeaders: "Origin, Context-Type, Accept",
 	}))
 
-	app.Get("/", func(c *fiber.Ctx) error {
-		result := services.NewServices(c).Helloworld()
-		return result
-	})
+	injector := services.NewInjectorServices()
+
+	leaderboardHandler := &handlers.LeaderboardHandler{
+		RedisService: injector.RedisService,
+	}
+	app.Get("/leaderboard", leaderboardHandler.GetAllScore)
 
 	app.Listen(":3001")
 }

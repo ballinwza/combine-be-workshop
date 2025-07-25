@@ -1,13 +1,25 @@
 package services
 
-import "github.com/gofiber/fiber/v2"
+import (
+	services_redis "github.com/ballinwza/combine-be-workshop/services/redis"
+	"github.com/redis/go-redis/v9"
+)
 
-type Services struct {
-	ctx *fiber.Ctx
+type InjectorServices struct {
+	RedisService *services_redis.RedisService
 }
 
-func NewServices(ctx *fiber.Ctx) *Services {
-	return &Services{
-		ctx: ctx,
+func NewInjectorServices() *InjectorServices {
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+		Protocol: 2,
+	})
+
+	redis := services_redis.NewRedisService(rdb)
+
+	return &InjectorServices{
+		RedisService: redis,
 	}
 }
