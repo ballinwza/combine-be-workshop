@@ -23,11 +23,11 @@ func main() {
 		AllowHeaders: "Origin, Content-Type, Accept",
 	}))
 
-	injector := services.NewInjectorServices()
+	allInjector := services.NewInjectorServices()
 
-	leaderboardHandler := &handlers_http.LeaderboardHandler{
-		RedisService:             injector.RedisService,
-		RedisLeaderboardServices: injector.RedisLeaderboardServices,
+	leaderboardInjector := &handlers_http.LeaderboardHandler{
+		RedisService:             allInjector.RedisService,
+		RedisLeaderboardServices: allInjector.RedisLeaderboardServices,
 	}
 
 	app.Use("/ws", configs.SetupWebsocketConfig)
@@ -60,11 +60,10 @@ func main() {
 		}))
 	*/
 
-	app.Get("/ws/chat/:id", websocket.New(handlers_ws.TestPubsub))
-	app.Get("/ws/leaderboard/", websocket.New(handlers_ws.WsLeaderboardScore(leaderboardHandler.RedisLeaderboardServices)))
+	app.Get("/ws/chat/", websocket.New(handlers_ws.WsChat(allInjector.RedisChatServices)))
+	app.Get("/ws/leaderboard/", websocket.New(handlers_ws.WsLeaderboardScore(allInjector.RedisLeaderboardServices)))
 
-	app.Get("/leaderboard", leaderboardHandler.GetAllScore)
-	app.Get("/leaderboard/save", leaderboardHandler.SaveScoreByName)
+	app.Get("/leaderboard/save", leaderboardInjector.SaveScoreByName)
 
 	log.Println("Serving at localhost:3001...")
 	log.Fatal(app.Listen(":3001"))

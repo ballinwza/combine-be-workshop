@@ -12,13 +12,14 @@ import (
 const redisChannel = "chat_messages"
 
 func TestPubsub(c *websocket.Conn) {
-	log.Printf("✅ Client ใหม่เชื่อมต่อเข้ามา: %s", c.RemoteAddr())
 
-	// var (
-	// 	mt int
-	// 	msg []byte
-	// 	err error
-	// )
+	var (
+		mt  int
+		msg []byte
+		// err error
+	)
+	log.Printf("✅ Client MSG: %v", msg)
+	log.Printf("✅ Client MT: %v", mt)
 
 	ctx := context.Background()
 
@@ -52,9 +53,10 @@ func TestPubsub(c *websocket.Conn) {
 	for {
 		_, msg, err := c.ReadMessage()
 		if err != nil {
-			if websocket.IsCloseError(err) {
-				log.Printf("Client ปิดการเชื่อมต่อ: %s", c.RemoteAddr())
-			}
+			// if websocket.IsCloseError(err, websocket.CloseAbnormalClosure) {
+			// 	log.Printf("Client ปิดการเชื่อมต่อ: %s", c.RemoteAddr())
+			// }
+			log.Printf("Client ปิดการเชื่อมต่อ: %s", c.RemoteAddr())
 			break
 		}
 
