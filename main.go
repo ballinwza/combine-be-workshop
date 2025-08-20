@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/ballinwza/combine-be-workshop/configs"
+	"github.com/joho/godotenv"
 
 	handlers_http "github.com/ballinwza/combine-be-workshop/handlers/http"
 	handlers_ws "github.com/ballinwza/combine-be-workshop/handlers/ws"
@@ -14,6 +16,11 @@ import (
 )
 
 func main() {
+
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Printf("Error no .env file found : %v", err)
+	}
 
 	app := fiber.New(fiber.Config{
 		AppName: "Combine BE Workshop v1.0.0",
