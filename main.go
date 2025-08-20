@@ -14,6 +14,7 @@ import (
 )
 
 func main() {
+
 	app := fiber.New(fiber.Config{
 		AppName: "Combine BE Workshop v1.0.0",
 	})
@@ -25,9 +26,18 @@ func main() {
 
 	allInjector := services.NewInjectorServices()
 
+	// Worker
+	allInjector.TicketQueueServices.WorkerPaymentTicket()
+
 	leaderboardInjector := &handlers_http.LeaderboardHandler{
-		RedisService:             allInjector.RedisService,
-		RedisLeaderboardServices: allInjector.RedisLeaderboardServices,
+		RedisLeaderboardServices: allInjector.RedisServices.RedisLeaderboardServices,
+	}
+
+	tickerInjector := &handlers_http.TicketQueueHandler{
+		RabbitmqService: allInjector.TicketQueueServices,
+	}
+	cacheInjector := &handlers_http.BasicCacheHandler{
+		CacheService: allInjector.RedisServices.RedisCacheServices,
 	}
 
 	app.Use("/ws", configs.SetupWebsocketConfig)
@@ -60,11 +70,20 @@ func main() {
 		}))
 	*/
 
-	app.Get("/ws/chat/", websocket.New(handlers_ws.WsChat(allInjector.RedisChatServices)))
-	app.Get("/ws/leaderboard/", websocket.New(handlers_ws.WsLeaderboardScore(allInjector.RedisLeaderboardServices)))
+	app.Get("/", func(c *fiber.Ctx) error {
+		return c.SendString("Hello world")
+	})
+
+	app.Get("/ws/chat/", websocket.New(handlers_ws.WsChat(allInjector.RedisServices.RedisChatServices)))
+	app.Get("/ws/leaderboard/", websocket.New(handlers_ws.WsLeaderboardScore(allInjector.RedisServices.RedisLeaderboardServices)))
 
 	app.Get("/leaderboard/save", leaderboardInjector.SaveScoreByName)
 
-	log.Println("Serving at localhost:3001...")
-	log.Fatal(app.Listen(":3001"))
+	app.Get("/queue/sender", tickerInjector.BookingTicket)
+
+	app.Post("/basic/set/cache", cacheInjector.UserDetailCacheSaveHandler)
+	app.Get("/basic/get/cache", cacheInjector.UserDetailCacheHandler)
+
+	log.Println("Serving at localhost:8080...")
+	log.Fatal(app.Listen(":8080"))
 }
