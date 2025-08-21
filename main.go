@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/ballinwza/combine-be-workshop/configs"
+	"github.com/ballinwza/combine-be-workshop/services/services_mutex"
 	"github.com/joho/godotenv"
 
 	handlers_http "github.com/ballinwza/combine-be-workshop/handlers/http"
@@ -32,9 +33,7 @@ func main() {
 	}))
 
 	allInjector := services.NewInjectorServices()
-
-	// Worker
-	allInjector.TicketQueueServices.WorkerPaymentTicket()
+	pool := services_mutex.NewClientPool()
 
 	leaderboardInjector := &handlers_http.LeaderboardHandler{
 		RedisLeaderboardServices: allInjector.RedisServices.RedisLeaderboardServices,
@@ -43,53 +42,37 @@ func main() {
 	tickerInjector := &handlers_http.TicketQueueHandler{
 		RabbitmqService: allInjector.TicketQueueServices,
 	}
+
+	// Worker 1
+	tickerInjector.WorkerPaymentTicket()
+	defer tickerInjector.RabbitmqService.Close()
+
+	// Worker 2
+	// tickerInjector.WorkerPaymentTicket()
+	// defer tickerInjector.RabbitmqService.Close()
+
 	cacheInjector := &handlers_http.BasicCacheHandler{
 		CacheService: allInjector.RedisServices.RedisCacheServices,
 	}
 
-	app.Use("/ws", configs.SetupWebsocketConfig)
-
-	/*
-		app.Get("/ws/:id", websocket.New(func(c *websocket.Conn) {
-			log.Println(c.Locals("allowed"))  // true
-			log.Println(c.Params("id"))       // 123
-			log.Println(c.Query("v"))         // 1.0
-			log.Println(c.Cookies("session")) //
-
-			var (
-				mt  int
-				msg []byte
-				err error
-			)
-
-			for {
-				if mt, msg, err = c.ReadMessage(); err != nil {
-					log.Println("read:", err)
-					break
-				}
-				log.Printf("recv: %s", msg)
-
-				if err = c.WriteMessage(mt, msg); err != nil {
-					log.Println("write:", err)
-					break
-				}
-			}
-		}))
-	*/
-
 	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Hello world")
+		return c.SendString("Hello world !!!")
 	})
 
-	app.Get("/ws/chat/", websocket.New(handlers_ws.WsChat(allInjector.RedisServices.RedisChatServices)))
-	app.Get("/ws/leaderboard/", websocket.New(handlers_ws.WsLeaderboardScore(allInjector.RedisServices.RedisLeaderboardServices)))
+	wsGroup := app.Group("/ws", configs.SetupWebsocketConfig)
+	wsGroup.Get("/chat/", websocket.New(handlers_ws.WsChat(allInjector.RedisServices.RedisChatServices)))
+	wsGroup.Get("/leaderboard/", websocket.New(handlers_ws.WsLeaderboardScore(allInjector.RedisServices.RedisLeaderboardServices)))
+	wsGroup.Get("/sub/queue/", websocket.New(handlers_ws.WsTicket(allInjector.RedisServices.RedisTicketServices, pool)))
 
-	app.Get("/leaderboard/save", leaderboardInjector.SaveScoreByName)
+	leaderboardGroup := app.Group("/leaderboard")
+	leaderboardGroup.Get("/save", leaderboardInjector.SaveScoreByName)
 
-	app.Get("/queue/sender", tickerInjector.BookingTicket)
+	queueGroup := app.Group("/queue")
+	queueGroup.Get("/sender", tickerInjector.BookingTicketHandler)
 
-	app.Post("/basic/set/cache", cacheInjector.UserDetailCacheSaveHandler)
-	app.Get("/basic/get/cache", cacheInjector.UserDetailCacheHandler)
+	cacheGroup := app.Group("/basic")
+	cacheGroup.Post("/set/cache", cacheInjector.UserDetailCacheSaveHandler)
+	cacheGroup.Get("/get/cache", cacheInjector.UserDetailCacheHandler)
 
 	log.Println("Serving at localhost:8080...")
 	log.Fatal(app.Listen(":8080"))
