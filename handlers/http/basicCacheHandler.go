@@ -1,12 +1,20 @@
 package handlers_http
 
 import (
+	"github.com/ballinwza/combine-be-workshop/services"
 	services_redis_cache "github.com/ballinwza/combine-be-workshop/services/redis/cache"
 	"github.com/gofiber/fiber/v2"
 )
 
 type BasicCacheHandler struct {
 	CacheService *services_redis_cache.RedisCache
+}
+
+func NewBasicCacheHandler() BasicCacheHandler {
+	redisCacheServices := services.NewInjectorServices(nil).RedisServices.RedisCacheServices
+	return BasicCacheHandler{
+		CacheService: redisCacheServices,
+	}
 }
 
 func (h *BasicCacheHandler) UserDetailCacheHandler(c *fiber.Ctx) error {

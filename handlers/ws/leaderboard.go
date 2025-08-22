@@ -5,16 +5,28 @@ import (
 	"encoding/json"
 	"log"
 
+	"github.com/ballinwza/combine-be-workshop/services"
 	services_redis_leaderboard "github.com/ballinwza/combine-be-workshop/services/redis/leaderboard"
 	"github.com/gofiber/contrib/websocket"
 )
 
-func WsLeaderboardScore(redisLeaderboardService *services_redis_leaderboard.RedisLeaderboardService) func(c *websocket.Conn) {
+type WsLeaderboardHandler struct {
+	RedisLeaderboardService *services_redis_leaderboard.RedisLeaderboardService
+}
+
+func NewWsLeaderboardHandler() WsLeaderboardHandler {
+	redisLeaderboardService := services.NewInjectorServices(nil).RedisServices.RedisLeaderboardServices
+	return WsLeaderboardHandler{
+		RedisLeaderboardService: redisLeaderboardService,
+	}
+}
+
+func (h *WsLeaderboardHandler) WsLeaderboardScore() func(c *websocket.Conn) {
 
 	return func(c *websocket.Conn) {
 		ctx := context.Background()
 
-		initialData, err := redisLeaderboardService.GetSortScore(ctx)
+		initialData, err := h.RedisLeaderboardService.GetSortScore(ctx)
 		if err != nil {
 			log.Printf("ดึงข้อมูลครั้งแรกไม่สำเร็จ: %v", err)
 		} else {
@@ -26,7 +38,7 @@ func WsLeaderboardScore(redisLeaderboardService *services_redis_leaderboard.Redi
 			}
 		}
 
-		updateChan, err := redisLeaderboardService.SubscribeLeaderboard(ctx)
+		updateChan, err := h.RedisLeaderboardService.SubscribeLeaderboard(ctx)
 		if err != nil {
 			log.Printf("ไม่สามารถ Subscribe ได้: %v", err)
 			c.Close()
