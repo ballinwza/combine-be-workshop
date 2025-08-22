@@ -1,33 +1,22 @@
 package services
 
 import (
+	handlers_mutex "github.com/ballinwza/combine-be-workshop/handlers/mutex"
+	services_rabbitmq "github.com/ballinwza/combine-be-workshop/services/rabbitmq"
 	services_redis "github.com/ballinwza/combine-be-workshop/services/redis"
-	services_redis_chat "github.com/ballinwza/combine-be-workshop/services/redis/chat"
-	services_redis_leaderboard "github.com/ballinwza/combine-be-workshop/services/redis/leaderboard"
-	"github.com/redis/go-redis/v9"
 )
 
 type InjectorServices struct {
-	RedisService             *services_redis.RedisService
-	RedisLeaderboardServices *services_redis_leaderboard.RedisLeaderboardService
-	RedisChatServices        *services_redis_chat.RedisChatService
+	RedisServices  *services_redis.RedisService
+	RabbitServices *services_rabbitmq.RabbitmqService
 }
 
-func NewInjectorServices() *InjectorServices {
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
-		Protocol: 2,
-	})
-
-	redis := services_redis.NewRedisService(rdb)
-	redisLeaderboard := services_redis_leaderboard.NewRedisLeaderboardService(rdb)
-	redisChat := services_redis_chat.NewRedisChatService(rdb)
+func NewInjectorServices(pool *handlers_mutex.ClientPool) *InjectorServices {
+	redisService := services_redis.NewRedisService()
+	rabbitServices := services_rabbitmq.NewRabbitmqService(pool)
 
 	return &InjectorServices{
-		RedisService:             redis,
-		RedisLeaderboardServices: redisLeaderboard,
-		RedisChatServices:        redisChat,
+		RedisServices:  redisService,
+		RabbitServices: rabbitServices,
 	}
 }

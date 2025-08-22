@@ -1,10 +1,11 @@
 package services_rabbitmq
 
 import (
+	"fmt"
 	"log"
 	"os"
 
-	"github.com/ballinwza/combine-be-workshop/services/mutex"
+	handlers_mutex "github.com/ballinwza/combine-be-workshop/handlers/mutex"
 	services_redis "github.com/ballinwza/combine-be-workshop/services/redis"
 	"github.com/rabbitmq/amqp091-go"
 )
@@ -13,15 +14,15 @@ type RabbitmqService struct {
 	conn  *amqp091.Connection
 	ch    *amqp091.Channel
 	redis *services_redis.RedisService
-	pool  *mutex.ClientPool
+	pool  *handlers_mutex.ClientPool
 }
 
-func NewRabbitmqService(pool *mutex.ClientPool) *RabbitmqService {
+func NewRabbitmqService(pool *handlers_mutex.ClientPool) *RabbitmqService {
 	rabbitConn := os.Getenv("RABBIT_CONN")
 
 	conn, err := amqp091.Dial("amqp://" + rabbitConn)
 	if err != nil {
-		panic("Failed to connect to RabbitMQ")
+		fmt.Printf("Failed to connect to RabbitMQ")
 	}
 
 	ch, err := conn.Channel()

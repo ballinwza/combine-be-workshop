@@ -14,7 +14,7 @@ services:
     # command: ["sleep", "9999"]
 
   rabbitmq:
-    image: rabbitmq:4-management
+    image: rabbitmq:3-management
     ports:
       - 5672:5672
       - 15672:15672

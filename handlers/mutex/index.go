@@ -1,4 +1,4 @@
-package mutex
+package handlers_mutex
 
 import (
 	"sync"
@@ -7,12 +7,12 @@ import (
 )
 
 type ClientPool struct {
-	clients map[*websocket.Conn]bool
+	clients map[string]*websocket.Conn
 	mu      sync.Mutex
 }
 
 func NewClientPool() *ClientPool {
 	return &ClientPool{
-		clients: make(map[*websocket.Conn]bool),
+		clients: make(map[string]*websocket.Conn),
 	}
 }

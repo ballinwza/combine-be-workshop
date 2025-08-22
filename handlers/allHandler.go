@@ -2,6 +2,7 @@ package handlers
 
 import (
 	handlers_http "github.com/ballinwza/combine-be-workshop/handlers/http"
+	handlers_mutex "github.com/ballinwza/combine-be-workshop/handlers/mutex"
 	handlers_ws "github.com/ballinwza/combine-be-workshop/handlers/ws"
 )
 
@@ -15,12 +16,15 @@ type AllHandler struct {
 }
 
 func NewAllHandler() *AllHandler {
+	rabbitPool := handlers_mutex.NewClientPool()
+
 	basicCacheHandler := handlers_http.NewBasicCacheHandler()
 	leaderboardHandler := handlers_http.NewLeaderboardHandler()
-	ticketHandler := handlers_http.NewTicketHandler()
 	wsChatHandler := handlers_ws.NewWsChatHandler()
 	wsLeaderboardHandler := handlers_ws.NewWsLeaderboardHandler()
-	wsTicketHandler := handlers_ws.NewWsTicketHandler()
+
+	ticketHandler := handlers_http.NewTicketHandler(rabbitPool)
+	wsTicketHandler := handlers_ws.NewWsTicketHandler(rabbitPool)
 
 	return &AllHandler{
 		BasicCacheHandler:    basicCacheHandler,
