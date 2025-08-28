@@ -6,7 +6,7 @@ import (
 	"github.com/gofiber/contrib/websocket"
 )
 
-func (p *ClientPool) SendToUser(userId string, message []byte) {
+func (p *ClientPool) SendToUser(userId string, message []byte) bool {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -18,13 +18,16 @@ func (p *ClientPool) SendToUser(userId string, message []byte) {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				fmt.Printf("Client disconnected : %v\n", err)
 			} else {
-
 				fmt.Printf("Error writing message : %v\n", err)
 			}
 			delete(p.clients, userId)
 			conn.Close()
+			return false
 		}
+
+		return true
 	} else {
 		fmt.Printf("No active WebSocket connection found for UserID: %s\n", userId)
+		return false
 	}
 }

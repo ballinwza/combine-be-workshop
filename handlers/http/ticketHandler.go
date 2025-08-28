@@ -20,7 +20,7 @@ func NewTicketHandler(pool *handlers_mutex.ClientPool) TicketHandler {
 
 func (h *TicketHandler) BookingTicketHandler(c *fiber.Ctx) error {
 	userId := c.Params("userId")
-	err := h.RabbitmqService.BookingTicket(c.Context(), userId)
+	err := h.RabbitmqService.RabbitbookingService.BookingTicket(c.Context(), userId)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed send payment ticket",
@@ -33,5 +33,5 @@ func (h *TicketHandler) BookingTicketHandler(c *fiber.Ctx) error {
 }
 
 func (h *TicketHandler) WorkerPaymentTicket() {
-	go h.RabbitmqService.WorkerPaymentTicket()
+	go h.RabbitmqService.RabbitbookingService.WorkerPaymentTicket()
 }

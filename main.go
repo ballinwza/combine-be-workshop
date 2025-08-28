@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
 
 	"github.com/ballinwza/combine-be-workshop/configs"
 	"github.com/ballinwza/combine-be-workshop/handlers"
@@ -14,7 +16,6 @@ import (
 )
 
 func main() {
-
 	err := godotenv.Load()
 	if err != nil {
 		fmt.Printf("Error no .env file found : %v", err)
@@ -31,9 +32,25 @@ func main() {
 
 	allHandler := handlers.NewAllHandler()
 
+	// Setup Exchange, Queue
+	err = allHandler.TicketHandler.RabbitmqService.RabbitbookingService.SetupBooking()
+	if err != nil {
+		log.Fatalf("Failed to setup RabbitMQ queues: %v", err)
+	}
+
+	err = allHandler.TicketHandler.RabbitmqService.RabbitbookingService.SetupBookingDeadLetter()
+	if err != nil {
+		log.Fatalf("Failed to setup RabbitMQ queues: %v", err)
+	}
+
+	err = allHandler.TicketHandler.RabbitmqService.RabbitbookingService.SetupBookingRetry()
+	if err != nil {
+		log.Fatalf("Failed to setup RabbitMQ retry queue: %v", err)
+	}
+
 	// Worker 1
 	allHandler.TicketHandler.WorkerPaymentTicket()
-	defer allHandler.TicketHandler.RabbitmqService.Close()
+	// defer allHandler.TicketHandler.RabbitmqService.Close()
 
 	// Worker 2
 	// tickerInjector.WorkerPaymentTicket()
@@ -58,6 +75,28 @@ func main() {
 	cacheGroup.Post("/set/cache", allHandler.BasicCacheHandler.UserDetailCacheSaveHandler)
 	cacheGroup.Get("/get/cache", allHandler.BasicCacheHandler.UserDetailCacheHandler)
 
-	log.Println("Serving at localhost:8080...")
-	log.Fatal(app.Listen(":8080"))
+	// log.Println("Serving at localhost:8080...")
+	// log.Fatal(app.Listen(":8080"))
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt)
+
+	go func() {
+		log.Println("Serving at localhost:8080...")
+		if err := app.Listen(":8080"); err != nil {
+			log.Panic(err)
+		}
+	}()
+
+	<-quit
+
+	log.Println("Gracefully shutting down...")
+	_ = app.Shutdown()
+
+	if err := app.Shutdown(); err != nil {
+		log.Printf("Error during server shutdown: %v", err)
+	}
+
+	allHandler.TicketHandler.RabbitmqService.Close() // ปิด Connection ตอนจบโปรแกรม
+	log.Println("Server shut down.")
 }

@@ -6,15 +6,17 @@ import (
 	"os"
 
 	handlers_mutex "github.com/ballinwza/combine-be-workshop/handlers/mutex"
+	services_rabbitmq_booking "github.com/ballinwza/combine-be-workshop/services/rabbitmq/booking"
 	services_redis "github.com/ballinwza/combine-be-workshop/services/redis"
 	"github.com/rabbitmq/amqp091-go"
 )
 
 type RabbitmqService struct {
-	conn  *amqp091.Connection
-	ch    *amqp091.Channel
-	redis *services_redis.RedisService
-	pool  *handlers_mutex.ClientPool
+	conn                 *amqp091.Connection
+	ch                   *amqp091.Channel
+	redis                *services_redis.RedisService
+	pool                 *handlers_mutex.ClientPool
+	RabbitbookingService services_rabbitmq_booking.RabbitMqBookingService
 }
 
 func NewRabbitmqService(pool *handlers_mutex.ClientPool) *RabbitmqService {
@@ -31,12 +33,14 @@ func NewRabbitmqService(pool *handlers_mutex.ClientPool) *RabbitmqService {
 	}
 
 	redis := services_redis.NewRedisService()
+	rabbitbookingService := services_rabbitmq_booking.NewRabbitMqBookingService(conn, ch, redis, pool)
 
 	return &RabbitmqService{
-		conn:  conn,
-		ch:    ch,
-		redis: redis,
-		pool:  pool,
+		conn:                 conn,
+		ch:                   ch,
+		redis:                redis,
+		pool:                 pool,
+		RabbitbookingService: *rabbitbookingService,
 	}
 }
 

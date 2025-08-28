@@ -1,4 +1,4 @@
-package services_rabbitmq
+package services_rabbitmq_booking
 
 import (
 	"context"
@@ -7,19 +7,18 @@ import (
 	"time"
 
 	services_redis_ticket "github.com/ballinwza/combine-be-workshop/services/redis/ticket"
+	gonanoid "github.com/matoous/go-nanoid/v2"
 	"github.com/rabbitmq/amqp091-go"
 )
 
-func (s *RabbitmqService) BookingTicket(ctx context.Context, userId string) error {
+func (s *RabbitMqBookingService) BookingTicket(ctx context.Context, userId string) error {
 	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 
-	bookingPayload := services_redis_ticket.NotificationTicket{
-		UserId:    userId,
-		Status:    true,
-		IsPending: true,
-		Message:   "Your ticket booking is pending",
-		Type:      "booking_status",
+	generateNewId, _ := gonanoid.Generate("0123456789", 10)
+	bookingPayload, err := s.redis.RedisTicketServices.SaveBookingTicket(ctx, generateNewId, userId, false, true, "on save pending", services_redis_ticket.Pending)
+	if err != nil {
+		fmt.Printf("Error : %v/", err)
 	}
 	payload, err := json.Marshal(bookingPayload)
 	if err != nil {
@@ -27,15 +26,22 @@ func (s *RabbitmqService) BookingTicket(ctx context.Context, userId string) erro
 	}
 	s.pool.SendToUser(userId, payload)
 
-	err = s.exchangeBookingDeclare()
+	err = s.ch.ExchangeDeclare(
+		BOOKING_EXCHANGE,
+		"fanout",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
 	if err != nil {
+		fmt.Printf("Error exchangeBookingDeclare : %s\n", err)
 		return err
 	}
 
-	// fmt.Printf("Publishing Key : %s\n", event.RoutingKey)
-
 	err = s.ch.PublishWithContext(ctx,
-		"ticket",
+		BOOKING_EXCHANGE,
 		"",
 		false,
 		false,

@@ -9,7 +9,7 @@ func (s *RedisTicketService) DescreaseTicket(ctx context.Context) (*int, error) 
 	ctx, cancel := context.WithTimeout(ctx, time.Second*20)
 	defer cancel()
 
-	res, err := s.CreateTicket(ctx)
+	res, err := s.SaveRemainingTicket(ctx)
 	if err != nil {
 		return nil, err
 	}

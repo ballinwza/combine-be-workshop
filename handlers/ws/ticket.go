@@ -37,27 +37,10 @@ func (h *WsTicketHandler) WsTicket() func(c *websocket.Conn) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		var resultData services_redis_ticket.NotificationTicket
-
 		// Initial
-		initialData, err := h.RedisTicketService.CreateTicket(ctx)
+		initialData, err := h.RedisTicketService.SaveRemainingTicket(ctx)
 		if err != nil {
 			log.Printf("Error WsTicket First fetch : %v\n", err)
-		}
-
-		resultData = services_redis_ticket.NotificationTicket{
-			UserId:    userId,
-			Status:    false,
-			IsPending: false,
-			Message:   "Not on queue",
-			Type:      "booking_status",
-		}
-
-		jsonData, _ := json.Marshal(resultData)
-		if err := c.WriteMessage(websocket.TextMessage, jsonData); err != nil {
-			fmt.Printf("Error WsTicket sending data : %v\n", err)
-			c.Close()
-			return
 		}
 
 		ticketPayload := services_redis_ticket.RemainingTicket{
@@ -74,6 +57,36 @@ func (h *WsTicketHandler) WsTicket() func(c *websocket.Conn) {
 			fmt.Printf("Error WsTicket sending data : %v\n", err)
 			c.Close()
 			return
+		}
+
+		// Notification
+		bookingTicketList, err := h.RedisTicketService.BookingTicketList(ctx, userId)
+		if err != nil {
+			return
+		}
+
+		jsonData, _ := json.Marshal(bookingTicketList)
+		err = c.WriteMessage(websocket.TextMessage, jsonData)
+		if err != nil {
+			log.Printf("Failed to send pending message to user %s: %v", userId, err)
+			return
+		}
+
+		notification, _ := h.RedisTicketService.GetNotification(ctx, userId)
+		if notification != nil {
+			jsonData, _ := json.Marshal(notification)
+			err := c.WriteMessage(websocket.TextMessage, jsonData)
+			if err != nil {
+				log.Printf("Failed to send pending message to user %s: %v", userId, err)
+				return
+			}
+
+			err = h.RedisTicketService.DeleteNotification(ctx, userId)
+			if err != nil {
+				log.Printf("Failed to send pending message to user %s: %v", userId, err)
+				return
+			}
+
 		}
 
 		// Waiting
