@@ -106,7 +106,10 @@ func (s *RabbitMqBookingService) WorkerPaymentTicket() (<-chan struct{}, error) 
 
 				notiSuccess, _ := s.redis.RedisTicketServices.SaveNotification(ctx, userId, true, "จองตั๋วสำเร็จแล้ว")
 				jsonNotiSuccess, _ := json.Marshal(notiSuccess)
-				s.pool.SendToUser(userId, jsonNotiSuccess)
+				isSendingNotiWasSuccess := s.pool.SendToUser(userId, jsonNotiSuccess)
+				if isSendingNotiWasSuccess {
+					s.redis.RedisTicketServices.DeleteNotification(ctx, userId)
+				}
 
 				s.pool.SendToUser(userId, jsonData)
 

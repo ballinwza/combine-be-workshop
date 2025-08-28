@@ -16,7 +16,7 @@ func (s *RabbitMqBookingService) BookingTicket(ctx context.Context, userId strin
 	defer cancel()
 
 	generateNewId, _ := gonanoid.Generate("0123456789", 10)
-	bookingPayload, err := s.redis.RedisTicketServices.SaveBookingTicket(ctx, generateNewId, userId, false, true, "on save pending", services_redis_ticket.Pending)
+	bookingPayload, err := s.redis.RedisTicketServices.SaveBookingTicket(ctx, generateNewId, userId, false, true, "กำลังดำเนินการจองตั๋ว", services_redis_ticket.Pending)
 	if err != nil {
 		fmt.Printf("Error : %v/", err)
 	}
