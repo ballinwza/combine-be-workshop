@@ -3,6 +3,7 @@ package services_redis_ticket
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 )
 
 func (s *RedisTicketService) SaveBookingTicket(ctx context.Context, ticketId string, userId string, isSuccess bool, isPending bool, message string, statusType BookingStatus) (*BookingTicket, error) {
@@ -20,6 +21,7 @@ func (s *RedisTicketService) SaveBookingTicket(ctx context.Context, ticketId str
 	jsonData, _ := json.Marshal(payload)
 	err := s.rdb.RPush(ctx, redisKey, jsonData).Err()
 	if err != nil {
+		fmt.Printf("Error SaveBookingTicket Unmarshal : %v\n", err)
 		return nil, err
 	}
 

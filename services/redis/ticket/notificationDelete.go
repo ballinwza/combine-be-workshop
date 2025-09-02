@@ -10,7 +10,7 @@ func (s *RedisTicketService) DeleteNotification(ctx context.Context, userId stri
 
 	err := s.rdb.Del(ctx, redisKey).Err()
 	if err != nil {
-		fmt.Printf("Error get notification \n")
+		fmt.Printf("Error DeleteNotification DELETE : %v\n", err)
 		return err
 	}
 

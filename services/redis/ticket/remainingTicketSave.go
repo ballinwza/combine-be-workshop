@@ -14,11 +14,12 @@ func (s *RedisTicketService) SaveRemainingTicket(ctx context.Context) (*Remainin
 	defer cancel()
 
 	var result RemainingTicket
-	chkValue, err := s.rdb.Get(ctx, s.ticketKey).Result()
-	fmt.Printf("num : %v\n", chkValue)
+	chkValue, err := s.rdb.Get(ctx, ticketKey).Result()
+
 	if chkValue == "" || err == redis.Nil {
-		_, err := s.rdb.Set(ctx, s.ticketKey, 10, -1).Result()
+		_, err := s.rdb.Set(ctx, ticketKey, 10, -1).Result()
 		if err != nil {
+			fmt.Printf("Error SaveRemainingTicket : %v\n", err)
 			return nil, err
 		}
 
@@ -28,14 +29,10 @@ func (s *RedisTicketService) SaveRemainingTicket(ctx context.Context) (*Remainin
 
 		return &result, nil
 	} else if err != nil {
-		fmt.Printf("Error can't get remaining ticket : %v\n", err)
+		fmt.Printf("Error SaveRemainingTicket : %v\n", err)
 		return nil, err
 	} else {
-		convToNum, err := strconv.Atoi(chkValue)
-		if err != nil {
-			fmt.Printf("Convert string to int failed at GetTicket\n")
-		}
-
+		convToNum, _ := strconv.Atoi(chkValue)
 		result = RemainingTicket{
 			RemainingTicket: convToNum,
 		}

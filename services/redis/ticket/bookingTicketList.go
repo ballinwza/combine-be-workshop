@@ -12,7 +12,7 @@ func (s *RedisTicketService) BookingTicketList(ctx context.Context, userId strin
 
 	messages, err := s.rdb.LRange(ctx, redisKey, 0, -1).Result()
 	if err != nil {
-		fmt.Printf("Error get notification \n")
+		fmt.Printf("Error BookingTicketList GET : %v\n", err)
 		return nil, err
 	}
 
@@ -20,6 +20,7 @@ func (s *RedisTicketService) BookingTicketList(ctx context.Context, userId strin
 		var temporaryNotiData BookingTicket
 		err := json.Unmarshal([]byte(value), &temporaryNotiData)
 		if err != nil {
+			fmt.Printf("Error BookingTicketList Unmarshal : %v\n", err)
 			return nil, err
 		}
 

@@ -2,6 +2,7 @@ package services_redis_ticket
 
 import (
 	"context"
+	"fmt"
 	"time"
 )
 
@@ -11,12 +12,14 @@ func (s *RedisTicketService) DescreaseTicket(ctx context.Context) (*int, error) 
 
 	res, err := s.SaveRemainingTicket(ctx)
 	if err != nil {
+		fmt.Printf("Error DescreaseTicket : %v\n", err)
 		return nil, err
 	}
 
 	if res.RemainingTicket > 0 {
-		res, err := s.rdb.DecrBy(ctx, s.ticketKey, 1).Result()
+		res, err := s.rdb.DecrBy(ctx, ticketKey, 1).Result()
 		if err != nil {
+			fmt.Printf("Error DescreaseTicket : %v\n", err)
 			return nil, err
 		}
 		result := int(res)

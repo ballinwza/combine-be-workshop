@@ -6,9 +6,9 @@ import (
 )
 
 func (s *RedisTicketService) PublishRemainingTicket(ctx context.Context, msg []byte) error {
-	err := s.rdb.Publish(ctx, s.ticketChannel, msg).Err()
+	err := s.rdb.Publish(ctx, ticketChannel, msg).Err()
 	if err != nil {
-		fmt.Printf("Error PublishRemainingTicket : %v\n", err)
+		fmt.Printf("Error PublishRemainingTicket PUBLISH : %v\n", err)
 		return err
 	}
 

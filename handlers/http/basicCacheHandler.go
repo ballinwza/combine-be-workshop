@@ -47,9 +47,9 @@ func (h *BasicCacheHandler) UserDetailCacheSaveHandler(c *fiber.Ctx) error {
 	}
 
 	if !value {
-		return c.Status(fiber.StatusBadRequest).JSON(c.JSON(fiber.Map{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "error ",
-		}))
+		})
 	}
 
 	return c.Status(fiber.StatusOK).JSON(value)
