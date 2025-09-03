@@ -5,18 +5,12 @@ import (
 )
 
 type RedisChatService struct {
-	rdb            *redis.Client
-	channel        string
-	chatHistoryKey string
+	rdb *redis.Client
 }
 
 func NewRedisChatService(rdb *redis.Client) *RedisChatService {
-	chatChennel := "chat_channel"
-	chatKey := "chat_history"
 
 	return &RedisChatService{
-		rdb:            rdb,
-		channel:        chatChennel,
-		chatHistoryKey: chatKey,
+		rdb: rdb,
 	}
 }

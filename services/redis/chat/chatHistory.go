@@ -3,7 +3,7 @@ package services_redis_chat
 import (
 	"context"
 	"encoding/json"
-	"log"
+	"fmt"
 )
 
 type ChatMessage struct {
@@ -12,8 +12,9 @@ type ChatMessage struct {
 }
 
 func (s *RedisChatService) GetChatHistory(ctx context.Context) ([]ChatMessage, error) {
-	history, err := s.rdb.LRange(ctx, s.chatHistoryKey, 0, 49).Result()
+	history, err := s.rdb.LRange(ctx, chatKey, 0, 49).Result()
 	if err != nil {
+		fmt.Printf("Error GetChatHistory : %v\n", err)
 		return nil, err
 	}
 
@@ -22,7 +23,7 @@ func (s *RedisChatService) GetChatHistory(ctx context.Context) ([]ChatMessage, e
 	for _, msgStr := range history {
 		var msg ChatMessage
 		if err := json.Unmarshal([]byte(msgStr), &msg); err != nil {
-			log.Println("Fuckig bug can't Unmarshal History idiot")
+			fmt.Println("Fuckig bug can't Unmarshal History idiot")
 		}
 
 		messages = append(messages, msg)

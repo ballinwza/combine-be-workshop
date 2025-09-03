@@ -2,15 +2,15 @@ package services_redis_chat
 
 import (
 	"context"
-	"log"
+	"fmt"
 )
 
 func (s *RedisChatService) SubscribeChat(ctx context.Context) (<-chan []ChatMessage, error) {
 	channel := make(chan []ChatMessage)
-	sub := s.rdb.Subscribe(ctx, s.channel)
+	sub := s.rdb.Subscribe(ctx, chatChennel)
 	_, err := sub.Receive(ctx)
 	if err != nil {
-		log.Printf("เกิดข้อผิดพลาดตอน Subscribe: %v", err)
+		fmt.Printf("Error SubscribeChat : %v\n", err)
 		return nil, err
 	}
 
@@ -23,7 +23,7 @@ func (s *RedisChatService) SubscribeChat(ctx context.Context) (<-chan []ChatMess
 		for range ch {
 			newMessage, err := s.GetChatHistory(ctx)
 			if err != nil {
-				log.Printf("ดึงข้อมูล Chat ใหม่ไม่สำเร็จ: %v", err)
+				fmt.Printf("Error SubscribeChat : %v\n", err)
 				continue
 			}
 			channel <- newMessage

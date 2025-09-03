@@ -2,18 +2,19 @@ package services_redis_chat
 
 import (
 	"context"
-	"log"
+	"fmt"
 )
 
 func (s *RedisChatService) PublishChat(ctx context.Context, message []byte) error {
-	if err := s.rdb.LPush(ctx, s.chatHistoryKey, message).Err(); err != nil {
-		log.Printf("บันทึก Chat ลง Redis List ไม่สำเร็จ: %v", err)
+	if err := s.rdb.LPush(ctx, chatKey, message).Err(); err != nil {
+		fmt.Printf("Error PublishChat : %v\n", err)
+
 		return err
 	}
 
-	err := s.rdb.Publish(ctx, s.channel, message).Err()
+	err := s.rdb.Publish(ctx, chatChennel, message).Err()
 	if err != nil {
-		log.Printf("Publish ไปยัง Redis ไม่สำเร็จ: %v", err)
+		fmt.Printf("Error PublishChat : %v\n", err)
 		return err
 
 	}
