@@ -29,8 +29,3 @@ const (
 	Remaining    BookingStatus = "ticket_remaining"
 	Notification BookingStatus = "ticket_notification"
 )
-
-const (
-	ticketKey     = "available_ticket"
-	ticketChannel = "ticket_remaining_channel"
-)

@@ -1,6 +1,9 @@
 package services_redis_leaderboard
 
-import "context"
+import (
+	"context"
+	"fmt"
+)
 
 type PlayerScore struct {
 	Username string  `json:"username"`
@@ -8,8 +11,9 @@ type PlayerScore struct {
 }
 
 func (s RedisLeaderboardService) GetSortScore(ctx context.Context) ([]PlayerScore, error) {
-	scores, err := s.rdb.ZRevRangeWithScores(ctx, s.leaderboardDataSet, 0, 9).Result()
+	scores, err := s.rdb.ZRevRangeWithScores(ctx, leaderboardDataSet, 0, 9).Result()
 	if err != nil {
+		fmt.Printf("Error GetSortScore : %v\n", err)
 		return nil, err
 	}
 

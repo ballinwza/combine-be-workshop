@@ -2,16 +2,16 @@ package services_redis_leaderboard
 
 import (
 	"context"
-	"log"
+	"fmt"
 )
 
 func (s *RedisLeaderboardService) SubscribeLeaderboard(ctx context.Context) (<-chan []PlayerScore, error) {
 	channel := make(chan []PlayerScore)
 
-	sub := s.rdb.Subscribe(ctx, s.channel)
+	sub := s.rdb.Subscribe(ctx, leaderboardChannel)
 	_, err := sub.Receive(ctx)
 	if err != nil {
-		log.Printf("เกิดข้อผิดพลาดตอน Subscribe: %v", err)
+		fmt.Printf("Error SubscribeLeaderboard : %v\n", err)
 		return nil, err
 	}
 
@@ -22,11 +22,10 @@ func (s *RedisLeaderboardService) SubscribeLeaderboard(ctx context.Context) (<-c
 		ch := sub.Channel()
 
 		for range ch {
-			log.Println("ได้รับสัญญาณอัปเดต Leaderboard!")
 
 			newLeaderboard, err := s.GetSortScore(ctx)
 			if err != nil {
-				log.Printf("ดึงข้อมูล Leaderboard ใหม่ไม่สำเร็จ: %v", err)
+				fmt.Printf("Error SubscribeLeaderboard : %v\n", err)
 				continue
 			}
 
