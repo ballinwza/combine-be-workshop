@@ -14,8 +14,9 @@ type WsChatHandler struct {
 	ChatService *services_redis_chat.RedisChatService
 }
 
-func NewWsChatHandler() WsChatHandler {
-	redisChatService := services.NewInjectorServices(nil).RedisServices.RedisChatServices
+func NewWsChatHandler(allService services.InjectorServices) WsChatHandler {
+	redisChatService := allService.RedisServices.RedisChatServices
+
 	return WsChatHandler{
 		ChatService: redisChatService,
 	}

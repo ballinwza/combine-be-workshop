@@ -11,8 +11,9 @@ type TicketHandler struct {
 	RabbitmqService *services_rabbitmq.RabbitmqService
 }
 
-func NewTicketHandler(pool *handlers_mutex.ClientPool) TicketHandler {
-	rabbitmqService := services.NewInjectorServices(pool).RabbitServices
+func NewTicketHandler(pool *handlers_mutex.ClientPool, allService services.InjectorServices) TicketHandler {
+	rabbitmqService := allService.RabbitServices
+
 	return TicketHandler{
 		RabbitmqService: rabbitmqService,
 	}

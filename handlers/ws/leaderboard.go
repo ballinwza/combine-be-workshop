@@ -14,8 +14,9 @@ type WsLeaderboardHandler struct {
 	RedisLeaderboardService *services_redis_leaderboard.RedisLeaderboardService
 }
 
-func NewWsLeaderboardHandler() WsLeaderboardHandler {
-	redisLeaderboardService := services.NewInjectorServices(nil).RedisServices.RedisLeaderboardServices
+func NewWsLeaderboardHandler(allService services.InjectorServices) WsLeaderboardHandler {
+	redisLeaderboardService := allService.RedisServices.RedisLeaderboardServices
+
 	return WsLeaderboardHandler{
 		RedisLeaderboardService: redisLeaderboardService,
 	}

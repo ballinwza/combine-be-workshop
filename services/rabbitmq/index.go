@@ -19,7 +19,7 @@ type RabbitmqService struct {
 	RabbitbookingService services_rabbitmq_booking.RabbitMqBookingService
 }
 
-func NewRabbitmqService(pool *handlers_mutex.ClientPool) *RabbitmqService {
+func NewRabbitmqService(pool *handlers_mutex.ClientPool, rdb *services_redis.RedisService) *RabbitmqService {
 	rabbitConn := os.Getenv("RABBIT_CONN")
 
 	conn, err := amqp091.Dial("amqp://" + rabbitConn)
@@ -32,13 +32,12 @@ func NewRabbitmqService(pool *handlers_mutex.ClientPool) *RabbitmqService {
 		log.Printf("Failed to connect channel")
 	}
 
-	redis := services_redis.NewRedisService()
-	rabbitbookingService := services_rabbitmq_booking.NewRabbitMqBookingService(conn, ch, redis, pool)
+	rabbitbookingService := services_rabbitmq_booking.NewRabbitMqBookingService(conn, ch, rdb, pool)
 
 	return &RabbitmqService{
 		conn:                 conn,
 		ch:                   ch,
-		redis:                redis,
+		redis:                rdb,
 		pool:                 pool,
 		RabbitbookingService: *rabbitbookingService,
 	}

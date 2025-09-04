@@ -10,8 +10,9 @@ type BasicCacheHandler struct {
 	CacheService *services_redis_cache.RedisCache
 }
 
-func NewBasicCacheHandler() BasicCacheHandler {
-	redisCacheServices := services.NewInjectorServices(nil).RedisServices.RedisCacheServices
+func NewBasicCacheHandler(allService services.InjectorServices) BasicCacheHandler {
+	redisCacheServices := allService.RedisServices.RedisCacheServices
+
 	return BasicCacheHandler{
 		CacheService: redisCacheServices,
 	}

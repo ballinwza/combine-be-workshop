@@ -1,8 +1,6 @@
 package services_redis
 
 import (
-	"os"
-
 	services_redis_cache "github.com/ballinwza/combine-be-workshop/services/redis/cache"
 	services_redis_chat "github.com/ballinwza/combine-be-workshop/services/redis/chat"
 	services_redis_leaderboard "github.com/ballinwza/combine-be-workshop/services/redis/leaderboard"
@@ -17,18 +15,7 @@ type RedisService struct {
 	RedisCacheServices       *services_redis_cache.RedisCache
 }
 
-func NewRedisService() *RedisService {
-	redisAddr := os.Getenv("REDIS_ADDR")
-	if redisAddr == "" {
-		redisAddr = "localhost:6379"
-	}
-
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     redisAddr,
-		Password: "",
-		DB:       0,
-		Protocol: 2,
-	})
+func NewRedisService(rdb *redis.Client) *RedisService {
 
 	redisLeaderboard := services_redis_leaderboard.NewRedisLeaderboardService(rdb)
 	redisChat := services_redis_chat.NewRedisChatService(rdb)

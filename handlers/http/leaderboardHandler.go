@@ -10,8 +10,9 @@ type LeaderboardHandler struct {
 	RedisLeaderboardServices *services_redis_leaderboard.RedisLeaderboardService
 }
 
-func NewLeaderboardHandler() LeaderboardHandler {
-	redisLeaderboardServices := services.NewInjectorServices(nil).RedisServices.RedisLeaderboardServices
+func NewLeaderboardHandler(allService services.InjectorServices) LeaderboardHandler {
+	redisLeaderboardServices := allService.RedisServices.RedisLeaderboardServices
+
 	return LeaderboardHandler{
 		RedisLeaderboardServices: redisLeaderboardServices,
 	}

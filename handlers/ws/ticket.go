@@ -18,8 +18,8 @@ type WsTicketHandler struct {
 	pool               *handlers_mutex.ClientPool
 }
 
-func NewWsTicketHandler(pool *handlers_mutex.ClientPool) WsTicketHandler {
-	redisTicketService := services.NewInjectorServices(pool).RedisServices.RedisTicketServices
+func NewWsTicketHandler(pool *handlers_mutex.ClientPool, allService services.InjectorServices) WsTicketHandler {
+	redisTicketService := allService.RedisServices.RedisTicketServices
 
 	return WsTicketHandler{
 		RedisTicketService: redisTicketService,
